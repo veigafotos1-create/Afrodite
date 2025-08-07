@@ -136,9 +136,11 @@ def mensagens(msg):
 
     for palavra, arquivo in gatilhos.items():
         if palavra in texto:
-            frase = escolher_frase(carregar_json(ARQUIVOS_JSON[arquivo]))
-            bot.reply_to(msg, frase.replace("{nome}", nome_usuario(user)))
-            registrar_resposta(user.id)
+            stickers = carregar_json(ARQUIVOS_JSON[arquivo])
+            if stickers:
+                sticker_id = random.choice(stickers)
+                bot.send_sticker(msg.chat.id, sticker_id)
+                registrar_resposta(user.id)
             return
 
 # 🎯 --- MENSAGEM ORÁCULO DIÁRIA ---
