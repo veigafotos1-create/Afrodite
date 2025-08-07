@@ -11,7 +11,7 @@ from flask import Flask, request
 import telebot
 
 # 🛡️ --- CONFIGURAÇÕES DO BOT ---
-TOKEN = os.getenv("TOKEN_AFRODITE", "COLOQUE_SEU_TOKEN_AQUI")
+TOKEN = os.getenv("TOKEN_AFRODITE", "8307889841:AAHswZzH-lx6zKCYmY-g8VBLrJOClM3_U0Q")
 ID_GRUPO = None  # Deixe None para qualquer grupo ou coloque um ID específico
 ID_ZEUS = 1481389775  # Seu ID fixo
 
