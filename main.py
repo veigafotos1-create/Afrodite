@@ -44,12 +44,17 @@ ultimo_tempo_resposta = {}
 MAX_RESPOSTAS_DIA = 3
 INTERVALO_MINIMO_SEG = 3600  # 1 hora
 
+# Base directory para carregar arquivos JSON da pasta do script
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # 📌 --- FUNÇÕES UTILITÁRIAS ---
 def carregar_json(nome_arquivo):
+    caminho_completo = os.path.join(BASE_DIR, nome_arquivo)
     try:
-        with open(nome_arquivo, 'r', encoding='utf-8') as f:
+        with open(caminho_completo, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except:
+    except Exception as e:
+        print(f"Erro ao carregar o arquivo {nome_arquivo}: {e}")
         return []
 
 def escolher_frase(lista):
