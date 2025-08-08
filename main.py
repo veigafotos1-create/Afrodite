@@ -101,11 +101,30 @@ def boas_vindas(message):
 @bot.message_handler(func=lambda msg: True)
 def mensagens(msg):
     user = msg.from_user
+   
+    texto = (msg.text or "").lower()
 
-    # Resposta especial para Zeus
-    if user.id == ID_ZEUS:
+# Se Zeus mencionar diretamente Afrodite
+    if user.id == ID_ZEUS and (re.search(r"\bafrodite\b", texto) or f"@{bot.get_me().username.lower()}" in texto):
         frase = escolher_frase(carregar_json(ARQUIVOS_JSON["respeito_zeus"]))
         bot.reply_to(msg, frase)
+        return
+
+# Se alguém perguntar por Zeus ou por Samuel de formas variadas
+    padroes_zeus = [
+        r"\bzeus\b",
+        r"\bsamuel\b",
+        r"\bsamu\b",
+        r"\bsamuka\b",
+        r"\bsamuca\b",
+        r"dono.*grupo",
+        r"cad[eê]\s+o\s+(zeus|samuel|samu(?:ka|ca)?)",
+        r"algu[eé]m\s+(viu|chamou|falou)\s+(zeus|samuel|samu(?:ka|ca)?)"
+    ]
+
+    if user.id != ID_ZEUS and any(re.search(p, texto) for p in padroes_zeus):
+        frases = carregar_json(ARQUIVOS_JSON["procura_dono"])
+        bot.reply_to(msg, escolher_frase(frases).replace("{nome}", nome_usuario(user)))
         return
 
     # Cooldown geral
