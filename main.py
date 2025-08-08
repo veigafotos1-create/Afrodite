@@ -165,10 +165,10 @@ def mensagens(msg):
         if user_id not in saudacoes_respostas:
             saudacoes_respostas[user_id] = []
 
-        # limpa registros com mais de 24h
+        # Limpa registros com mais de 24h
         saudacoes_respostas[user_id] = [t for t in saudacoes_respostas[user_id] if agora - t < 86400]
 
-        # limites
+        # Verifica limite diário e intervalo
         if len(saudacoes_respostas[user_id]) < MAX_SAUDACOES_DIA:
             if not saudacoes_respostas[user_id] or agora - saudacoes_respostas[user_id][-1] >= INTERVALO_SAUDACAO_SEG:
                 # decide arquivo de stickers por gênero
@@ -177,7 +177,6 @@ def mensagens(msg):
                 elif usuario_mulher(user):
                     arquivo = "saudacoes_mulheres.json"
                 else:
-                    # se não identificado no JSON, usa ambos (ou ignore; aqui vamos usar ambos)
                     arquivo = None
 
                 stickers = []
@@ -187,10 +186,23 @@ def mensagens(msg):
                     stickers = carregar_json("saudacoes_homens.json") + carregar_json("saudacoes_mulheres.json")
 
                 if stickers:
-                    bot.send_sticker(msg.chat.id, random.choice(stickers))
+                    # envia o sticker
+                    sticker_id = random.choice(stickers)
+                    bot.send_sticker(msg.chat.id, sticker_id)
+
+                    # envia a frase correspondente logo abaixo do sticker
+                    # (texto já está em minúsculas: 'texto')
+                    if "bom dia" in texto:
+                        bot.send_message(msg.chat.id, "Bom dia ☀️💋")
+                    elif "boa tarde" in texto:
+                        bot.send_message(msg.chat.id, "Boa tarde 🌹🔥")
+                    elif "boa noite" in texto:
+                        bot.send_message(msg.chat.id, "Boa noite 🌙💋")
+    
+                    # registra a saudação
                     saudacoes_respostas[user_id].append(agora)
         return
-
+    
     # 5) Agora o cooldown geral (3 respostas/dia e 1h entre respostas)
     if not pode_responder(user.id):
         return
