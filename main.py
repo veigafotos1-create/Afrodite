@@ -9,6 +9,7 @@ import time
 import threading
 from flask import Flask, request
 import telebot
+from unidecode import unidecode
 
 # 🛡️ --- CONFIGURAÇÕES DO BOT ---
 TOKEN = os.getenv("TOKEN_AFRODITE", "8307889841:AAHswZzH-lx6zKCYmY-g8VBLrJOClM3_U0Q")
@@ -93,7 +94,12 @@ def usuario_homem(user):
 
 def usuario_mulher(user):
     mulheres = carregar_json(ARQUIVOS_JSON["mulheres"])
-    return user.username and user.username.lower() in [m.lower() for m in mulheres]
+    mulheres_normalizadas = [unidecode(m.lower()) for m in mulheres]
+
+    nome = unidecode((user.first_name or "").lower())
+    username = unidecode((user.username or "").lower())
+
+    return nome in mulheres_normalizadas or username in mulheres_normalizadas
 
 def pode_responder(user_id):
     agora = time.time()
@@ -184,22 +190,18 @@ def mensagens(msg):
                     stickers = carregar_json(arquivo)
                 else:
                     stickers = carregar_json("saudacoes_homens.json") + carregar_json("saudacoes_mulheres.json")
-
+               
                 if stickers:
-                    # envia o sticker
                     sticker_id = random.choice(stickers)
+                    time.sleep(15)
                     bot.send_sticker(msg.chat.id, sticker_id)
-
-                    # envia a frase correspondente logo abaixo do sticker
-                    # (texto já está em minúsculas: 'texto')
+                    time.sleep(10)
                     if "bom dia" in texto:
-                        bot.send_message(msg.chat.id, "Bom dia ☀️💋")
+                        bot.send_message(msg.chat.id, "Bom Dia ☀️💋")
                     elif "boa tarde" in texto:
-                        bot.send_message(msg.chat.id, "Boa tarde 🌹🔥")
+                        bot.send_message(msg.chat.id, "Boa Tarde 🌹🔥")
                     elif "boa noite" in texto:
-                        bot.send_message(msg.chat.id, "Boa noite 🌙💋")
-    
-                    # registra a saudação
+                        bot.send_message(msg.chat.id, "Boa Noite 🌙💋")
                     saudacoes_respostas[user_id].append(agora)
         return
     
