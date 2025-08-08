@@ -62,7 +62,7 @@ def registrar_insulto(user_id):
 
 # 👋 SAUDAÇÕES: controle de saudações por usuário
 saudacoes_respostas = {}
-MAX_SAUDACOES_DIA = 2
+MAX_SAUDACOES_DIA = 3
 INTERVALO_SAUDACAO_SEG = 3600  # 1 hora
 
 # Base directory para carregar arquivos JSON da pasta do script
@@ -158,7 +158,7 @@ def mensagens(msg):
         return
 
     # 4) SAUDAÇÕES — (bom dia / boa tarde / boa noite)
-    #    Só se não for reply; controle: max 2/dia e mínimo INTERVALO_SAUDACAO_SEG entre respostas
+    #    Só se não for reply; controle: max 3/dia e mínimo INTERVALO_SAUDACAO_SEG entre respostas
     if not msg.reply_to_message and any(s in texto for s in ["bom dia","boa tarde","boa noite"]):
         agora = time.time()
         user_id = user.id
