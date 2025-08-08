@@ -238,12 +238,12 @@ def mensagens(msg):
                 bot.send_sticker(msg.chat.id, sticker_id)
 
                 # Aqui adiciona a frase abaixo do sticker, se for saudação
-                if "bom dia" in texto:
-                    bot.send_message(msg.chat.id, "Bom Dia ☀️💋")
-                elif "boa tarde" in texto:
-                    bot.send_message(msg.chat.id, "Boa Tarde 🌹🔥")
-                elif "boa noite" in texto:
-                    bot.send_message(msg.chat.id, "Boa Noite 🌙💋")
+                #if "bom dia" in texto:
+                #    bot.send_message(msg.chat.id, "Bom Dia ☀️💋")
+                #elif "boa tarde" in texto:
+                #    bot.send_message(msg.chat.id, "Boa Tarde 🌹🔥")
+                #elif "boa noite" in texto:
+                #    bot.send_message(msg.chat.id, "Boa Noite 🌙💋")
 
                 registrar_resposta(user.id)
             return
