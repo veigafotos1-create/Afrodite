@@ -155,7 +155,7 @@ def enviar_oraculo():
 def agendador():
     while True:
         agora = agora_brasilia()
-        if agora.strftime("%H:%M") == "23:34":
+        if agora.strftime("%H:%M") == "00:00":
             enviar_oraculo()
         # Reset diário de limite de respostas
         if agora.strftime("%H:%M") == "00:00":
