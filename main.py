@@ -193,9 +193,9 @@ def mensagens(msg):
                
                 if stickers:
                     sticker_id = random.choice(stickers)
-                    time.sleep(15)
+                    time.sleep(25)
                     bot.send_sticker(msg.chat.id, sticker_id)
-                    time.sleep(10)
+                    time.sleep(25)
                     if "bom dia" in texto:
                         bot.send_message(msg.chat.id, "Bom Dia ☀️💋")
                     elif "boa tarde" in texto:
