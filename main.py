@@ -35,6 +35,7 @@ ARQUIVOS_JSON = {
     "respeito_zeus": "frases_respeito_zeus.json",
     "homens": "homens.json",
     "mulheres": "mulheres.json",
+    "gatilho_insulto": "gatilho_insulto.json",
     "procura_dono": "frases_procura_dono.json"
 }
 
@@ -185,7 +186,25 @@ def mensagens(msg):
         "💔": "gatilho_coracao",
         "😍": "gatilho_coracao",
         "relacionamento": "gatilho_relacionamento",
-        "traição": "gatilho_relacionamento"
+        "traição": "gatilho_relacionamento",
+    
+        # 🎯 Gatilhos ofensivos
+        "burra": "gatilho_insulto",
+        "bot burro": "gatilho_insulto",
+        "afrodite burra": "gatilho_insulto",
+        "dono burro": "gatilho_insulto",
+        "chata": "gatilho_insulto",
+        "chato": "gatilho_insulto",
+        "xata": "gatilho_insulto",
+        "aff": "gatilho_insulto",
+        "afff": "gatilho_insulto",
+        "affff": "gatilho_insulto",
+        "brinquedo": "gatilho_insulto",
+        "robô": "gatilho_insulto",
+        "jumenta": "gatilho_insulto",
+        "imoral": "gatilho_insulto",
+        "pervertida": "gatilho_insulto",
+        "sai fora": "gatilho_insulto"
     }
 
     for palavra, arquivo in gatilhos.items():
