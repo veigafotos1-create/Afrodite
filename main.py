@@ -218,23 +218,23 @@ def mensagens(msg):
         "traição": "gatilho_relacionamento"
     }
 
-   for palavra, arquivo in gatilhos.items():
-    if palavra in texto:
-        stickers = carregar_json(ARQUIVOS_JSON[arquivo])
-        if stickers:
-            sticker_id = random.choice(stickers)
-            bot.send_sticker(msg.chat.id, sticker_id)
+    for palavra, arquivo in gatilhos.items():
+        if palavra in texto:
+            stickers = carregar_json(ARQUIVOS_JSON[arquivo])
+            if stickers:
+                sticker_id = random.choice(stickers)
+                bot.send_sticker(msg.chat.id, sticker_id)
 
-            # Aqui adiciona a frase abaixo do sticker, se for saudação
-            if "bom dia" in texto:
-                bot.send_message(msg.chat.id, "Bom Dia ☀️💋")
-            elif "boa tarde" in texto:
-                bot.send_message(msg.chat.id, "Boa Tarde 🌹🔥")
-            elif "boa noite" in texto:
-                bot.send_message(msg.chat.id, "Boa Noite 🌙💋")
+                # Aqui adiciona a frase abaixo do sticker, se for saudação
+                if "bom dia" in texto:
+                    bot.send_message(msg.chat.id, "Bom Dia ☀️💋")
+                elif "boa tarde" in texto:
+                    bot.send_message(msg.chat.id, "Boa Tarde 🌹🔥")
+                elif "boa noite" in texto:
+                    bot.send_message(msg.chat.id, "Boa Noite 🌙💋")
 
-            registrar_resposta(user.id)
-        return
+                registrar_resposta(user.id)
+            return
 
 # 🎯 --- MENSAGEM ORÁCULO DIÁRIA ---
 def enviar_oraculo():
