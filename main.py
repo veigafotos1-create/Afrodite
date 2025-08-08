@@ -34,7 +34,8 @@ ARQUIVOS_JSON = {
     "oraculo": "frases_oraculo_afrodite.json",
     "respeito_zeus": "frases_respeito_zeus.json",
     "homens": "homens.json",
-    "mulheres": "mulheres.json"
+    "mulheres": "mulheres.json",
+    "procura_dono": "frases_procura_dono.json"
 }
 
 # 📌 Controle de respostas (cooldown)
