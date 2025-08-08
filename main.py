@@ -44,6 +44,11 @@ ultimo_tempo_resposta = {}
 MAX_RESPOSTAS_DIA = 3
 INTERVALO_MINIMO_SEG = 3600  # 1 hora
 
+# 👋 SAUDAÇÕES: controle de saudações por usuário
+saudacoes_respostas = {}
+MAX_SAUDACOES_DIA = 2
+INTERVALO_SAUDACAO_SEG = 3600  # 1 hora
+
 # Base directory para carregar arquivos JSON da pasta do script
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -76,10 +81,8 @@ def usuario_mulher(user):
 
 def pode_responder(user_id):
     agora = time.time()
-    # Limite diário
     if limite_respostas_dia.get(user_id, 0) >= MAX_RESPOSTAS_DIA:
         return False
-    # Intervalo mínimo
     if user_id in ultimo_tempo_resposta and agora - ultimo_tempo_resposta[user_id] < INTERVALO_MINIMO_SEG:
         return False
     return True
@@ -105,11 +108,42 @@ def mensagens(msg):
         bot.reply_to(msg, frase)
         return
 
-    # Cooldown
+    # Cooldown geral
     if not pode_responder(user.id):
         return
 
     texto = (msg.text or "").lower()
+
+    # 👋 SAUDAÇÕES (bom dia, boa tarde, boa noite)
+    if not msg.reply_to_message and any(s in texto for s in ["bom dia", "boa tarde", "boa noite"]):
+        agora = time.time()
+        user_id = user.id
+        if user_id not in saudacoes_respostas:
+            saudacoes_respostas[user_id] = []
+
+        # Limpa saudações com mais de 24h
+        saudacoes_respostas[user_id] = [
+            t for t in saudacoes_respostas[user_id] if agora - t < 86400
+        ]
+
+        if len(saudacoes_respostas[user_id]) >= MAX_SAUDACOES_DIA:
+            return
+
+        if saudacoes_respostas[user_id] and agora - saudacoes_respostas[user_id][-1] < INTERVALO_SAUDACAO_SEG:
+            return
+
+        if usuario_homem(user):
+            arquivo = "saudacoes_homens.json"
+        elif usuario_mulher(user):
+            arquivo = "saudacoes_mulheres.json"
+        else:
+            return
+
+        stickers = carregar_json(arquivo)
+        if stickers:
+            bot.send_sticker(msg.chat.id, random.choice(stickers))
+            saudacoes_respostas[user_id].append(agora)
+        return
 
     # Menção direta
     if re.search(r"\bafrodite\b", texto) or f"@{bot.get_me().username.lower()}" in texto:
@@ -157,9 +191,8 @@ def agendador():
         agora = agora_brasilia()
         if agora.strftime("%H:%M") == "00:00":
             enviar_oraculo()
-        # Reset diário de limite de respostas
-        if agora.strftime("%H:%M") == "00:00":
             limite_respostas_dia.clear()
+            saudacoes_respostas.clear()
         time.sleep(60)
 
 threading.Thread(target=agendador, daemon=True).start()
