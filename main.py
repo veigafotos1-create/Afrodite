@@ -46,6 +46,20 @@ ultimo_tempo_resposta = {}
 MAX_RESPOSTAS_DIA = 3
 INTERVALO_MINIMO_SEG = 3600  # 1 hora
 
+# Controle específico para insultos (responder com sticker no máximo 1 vez por hora por usuário)
+insultos_ultimo = {}
+INTERVALO_INSULTO_SEG = 3600  # 1 hora
+
+def pode_responder_insulto(user_id):
+    agora = time.time()
+    last = insultos_ultimo.get(user_id)
+    if last and agora - last < INTERVALO_INSULTO_SEG:
+        return False
+    return True
+
+def registrar_insulto(user_id):
+    insultos_ultimo[user_id] = time.time()
+
 # 👋 SAUDAÇÕES: controle de saudações por usuário
 saudacoes_respostas = {}
 MAX_SAUDACOES_DIA = 2
@@ -103,16 +117,15 @@ def boas_vindas(message):
 @bot.message_handler(func=lambda msg: True)
 def mensagens(msg):
     user = msg.from_user
-   
     texto = (msg.text or "").lower()
 
-# Se Zeus mencionar diretamente Afrodite
+    # 1) Se Zeus mencionar diretamente Afrodite -> resposta especial e RETURN (tratamento exclusivo)
     if user.id == ID_ZEUS and (re.search(r"\bafrodite\b", texto) or f"@{bot.get_me().username.lower()}" in texto):
         frase = escolher_frase(carregar_json(ARQUIVOS_JSON["respeito_zeus"]))
         bot.reply_to(msg, frase)
         return
 
-# Se alguém perguntar por Zeus ou por Samuel de formas variadas
+    # 2) Se alguém perguntar por Zeus/Samuel (variações) -> resposta especial (procura_dono) e RETURN
     padroes_zeus = [
         r"\bzeus\b",
         r"\bsamuel\b",
@@ -123,50 +136,66 @@ def mensagens(msg):
         r"cad[eê]\s+o\s+(zeus|samuel|samu(?:ka|ca)?)",
         r"algu[eé]m\s+(viu|chamou|falou)\s+(zeus|samuel|samu(?:ka|ca)?)"
     ]
-
     if user.id != ID_ZEUS and any(re.search(p, texto) for p in padroes_zeus):
         frases = carregar_json(ARQUIVOS_JSON["procura_dono"])
         bot.reply_to(msg, escolher_frase(frases).replace("{nome}", nome_usuario(user)))
         return
 
-    # Cooldown geral
-    if not pode_responder(user.id):
+    # 3) INSULTOS — rodar antes do cooldown geral; resposta SÓ por sticker.
+    #     Usa cooldown próprio (1 hora) via pode_responder_insulto()
+    gatilho_insultos = [
+        "burra","bot burro","afrodite burra","dono burro",
+        "chata","chato","xata",
+        "aff","afff","affff",
+        "brinquedo","robô","robo","jumenta","imoral","pervertida","sai fora"
+    ]
+    if any(p in texto for p in gatilho_insultos):
+        if pode_responder_insulto(user.id):
+            stickers = carregar_json(ARQUIVOS_JSON.get("gatilho_insulto", "gatilho_insulto.json"))
+            if stickers:
+                bot.send_sticker(msg.chat.id, random.choice(stickers))
+                registrar_insulto(user.id)
         return
 
-    texto = (msg.text or "").lower()
-
-    # 👋 SAUDAÇÕES (bom dia, boa tarde, boa noite)
-    if not msg.reply_to_message and any(s in texto for s in ["bom dia", "boa tarde", "boa noite"]):
+    # 4) SAUDAÇÕES — (bom dia / boa tarde / boa noite)
+    #    Só se não for reply; controle: max 2/dia e mínimo INTERVALO_SAUDACAO_SEG entre respostas
+    if not msg.reply_to_message and any(s in texto for s in ["bom dia","boa tarde","boa noite"]):
         agora = time.time()
         user_id = user.id
         if user_id not in saudacoes_respostas:
             saudacoes_respostas[user_id] = []
 
-        # Limpa saudações com mais de 24h
-        saudacoes_respostas[user_id] = [
-            t for t in saudacoes_respostas[user_id] if agora - t < 86400
-        ]
+        # limpa registros com mais de 24h
+        saudacoes_respostas[user_id] = [t for t in saudacoes_respostas[user_id] if agora - t < 86400]
 
-        if len(saudacoes_respostas[user_id]) >= MAX_SAUDACOES_DIA:
-            return
+        # limites
+        if len(saudacoes_respostas[user_id]) < MAX_SAUDACOES_DIA:
+            if not saudacoes_respostas[user_id] or agora - saudacoes_respostas[user_id][-1] >= INTERVALO_SAUDACAO_SEG:
+                # decide arquivo de stickers por gênero
+                if usuario_homem(user):
+                    arquivo = "saudacoes_homens.json"
+                elif usuario_mulher(user):
+                    arquivo = "saudacoes_mulheres.json"
+                else:
+                    # se não identificado no JSON, usa ambos (ou ignore; aqui vamos usar ambos)
+                    arquivo = None
 
-        if saudacoes_respostas[user_id] and agora - saudacoes_respostas[user_id][-1] < INTERVALO_SAUDACAO_SEG:
-            return
+                stickers = []
+                if arquivo:
+                    stickers = carregar_json(arquivo)
+                else:
+                    stickers = carregar_json("saudacoes_homens.json") + carregar_json("saudacoes_mulheres.json")
 
-        if usuario_homem(user):
-            arquivo = "saudacoes_homens.json"
-        elif usuario_mulher(user):
-            arquivo = "saudacoes_mulheres.json"
-        else:
-            return
-
-        stickers = carregar_json(arquivo)
-        if stickers:
-            bot.send_sticker(msg.chat.id, random.choice(stickers))
-            saudacoes_respostas[user_id].append(agora)
+                if stickers:
+                    bot.send_sticker(msg.chat.id, random.choice(stickers))
+                    saudacoes_respostas[user_id].append(agora)
         return
 
-    # Menção direta
+    # 5) Agora o cooldown geral (3 respostas/dia e 1h entre respostas)
+    if not pode_responder(user.id):
+        return
+
+    # 6) Menção direta à Afrodite (frases — comportamento normal)
     if re.search(r"\bafrodite\b", texto) or f"@{bot.get_me().username.lower()}" in texto:
         if usuario_homem(user):
             frases = carregar_json(ARQUIVOS_JSON["menção_homens"])
@@ -178,7 +207,7 @@ def mensagens(msg):
         registrar_resposta(user.id)
         return
 
-    # Gatilhos
+    # 7) Gatilhos normais (amor, sexo, coração, relacionamento, etc) — enviam sticker
     gatilhos = {
         "amor": "gatilho_amor",
         "sexo": "gatilho_sexo",
@@ -186,25 +215,7 @@ def mensagens(msg):
         "💔": "gatilho_coracao",
         "😍": "gatilho_coracao",
         "relacionamento": "gatilho_relacionamento",
-        "traição": "gatilho_relacionamento",
-    
-        # 🎯 Gatilhos ofensivos
-        "burra": "gatilho_insulto",
-        "bot burro": "gatilho_insulto",
-        "afrodite burra": "gatilho_insulto",
-        "dono burro": "gatilho_insulto",
-        "chata": "gatilho_insulto",
-        "chato": "gatilho_insulto",
-        "xata": "gatilho_insulto",
-        "aff": "gatilho_insulto",
-        "afff": "gatilho_insulto",
-        "affff": "gatilho_insulto",
-        "brinquedo": "gatilho_insulto",
-        "robô": "gatilho_insulto",
-        "jumenta": "gatilho_insulto",
-        "imoral": "gatilho_insulto",
-        "pervertida": "gatilho_insulto",
-        "sai fora": "gatilho_insulto"
+        "traição": "gatilho_relacionamento"
     }
 
     for palavra, arquivo in gatilhos.items():
