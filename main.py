@@ -310,7 +310,7 @@ def enviar_oraculo():
 def agendador():
     while True:
         agora = agora_brasilia()
-        if agora.strftime("%H:%M") == "00:00":
+        if agora.strftime("%H:%M") == "09:00":
             enviar_oraculo()
             limite_respostas_dia.clear()
             saudacoes_respostas.clear()
