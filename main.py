@@ -10,6 +10,7 @@ import threading
 from flask import Flask, request
 import telebot
 from unidecode import unidecode
+import itertools
 
 # 🛡️ --- CONFIGURAÇÕES DO BOT ---
 TOKEN = os.getenv("TOKEN_AFRODITE", "8307889841:AAHswZzH-lx6zKCYmY-g8VBLrJOClM3_U0Q")
@@ -112,6 +113,51 @@ def pode_responder(user_id):
 def registrar_resposta(user_id):
     limite_respostas_dia[user_id] = limite_respostas_dia.get(user_id, 0) + 1
     ultimo_tempo_resposta[user_id] = time.time()
+# Função para salvar lista no JSON (reescreve o arquivo)
+def salvar_json(nome_arquivo, lista):
+    caminho_completo = os.path.join(BASE_DIR, nome_arquivo)
+    try:
+        with open(caminho_completo, 'w', encoding='utf-8') as f:
+            json.dump(lista, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"Erro ao salvar o arquivo {nome_arquivo}: {e}")
+
+# Função que retorna um par (homem, mulher) aleatório que ainda não saiu
+def escolher_par_aleatorio_sem_repetir():
+    homens = carregar_json(ARQUIVOS_JSON["homens"])
+    mulheres = carregar_json(ARQUIVOS_JSON["mulheres"])
+
+    usados_homens = carregar_json("pares_usados_homens.json")
+    usados_mulheres = carregar_json("pares_usados_mulheres.json")
+
+    # Filtra os disponíveis (não usados ainda)
+    disponiveis_homens = [h for h in homens if h not in usados_homens]
+    disponiveis_mulheres = [m for m in mulheres if m not in usados_mulheres]
+
+    # Se acabou a lista de homens, zera a lista de usados
+    if not disponiveis_homens:
+        usados_homens = []
+        salvar_json("pares_usados_homens.json", usados_homens)
+        disponiveis_homens = homens.copy()
+
+    # Se acabou a lista de mulheres, zera a lista de usados
+    if not disponiveis_mulheres:
+        usados_mulheres = []
+        salvar_json("pares_usados_mulheres.json", usados_mulheres)
+        disponiveis_mulheres = mulheres.copy()
+
+    # Escolhe um homem e uma mulher aleatoriamente dentre os disponíveis
+    escolhido_homem = random.choice(disponiveis_homens)
+    escolhido_mulher = random.choice(disponiveis_mulheres)
+
+    # Registra como usados
+    usados_homens.append(escolhido_homem)
+    usados_mulheres.append(escolhido_mulher)
+
+    salvar_json("pares_usados_homens.json", usados_homens)
+    salvar_json("pares_usados_mulheres.json", usados_mulheres)
+
+    return escolhido_homem, escolhido_mulher
 
 # 📢 --- HANDLERS ---
 @bot.message_handler(content_types=["new_chat_members"])
@@ -254,10 +300,12 @@ def mensagens(msg):
 def enviar_oraculo():
     frase = escolher_frase(carregar_json(ARQUIVOS_JSON["oraculo"]))
     if frase:
+        homem, mulher = escolher_par_aleatorio_sem_repetir()
+        mensagem = f"{frase}\n\nHoje o oráculo escolheu: @{homem} e @{mulher} 💫"
         if ID_GRUPO:
-            bot.send_message(ID_GRUPO, frase)
+            bot.send_message(ID_GRUPO, mensagem)
         else:
-            print("💬 Oráculo:", frase)
+            print("💬 Oráculo:", mensagem)
 
 def agendador():
     while True:
