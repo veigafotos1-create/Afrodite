@@ -130,11 +130,11 @@ def escolher_par_aleatorio_sem_repetir():
     salvar_json("pares_usados_mulheres.json", usados_mulheres)
     return escolhido_homem, escolhido_mulher
 
-#@bot.message_handler(content_types=["new_chat_members"])
-#def boas_vindas(message):
-#    for membro in message.new_chat_members:
-#        frase = escolher_frase(carregar_json(ARQUIVOS_JSON["bem_vindo"]))
-#        bot.reply_to(message, frase.replace("{nome}", nome_usuario(membro)))
+@bot.message_handler(content_types=["new_chat_members"])
+def boas_vindas(message):
+    for membro in message.new_chat_members:
+        frase = escolher_frase(carregar_json(ARQUIVOS_JSON["bem_vindo"]))
+        bot.reply_to(message, frase.replace("{nome}", nome_usuario(membro)))
 
 @bot.message_handler(func=lambda msg: True)
 def mensagens(msg):
